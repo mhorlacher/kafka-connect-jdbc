@@ -2,4 +2,4 @@
 
 echo "Starting..."
 
-/bin/connect-standalone worker.properties connector.properties.d/*
+/bin/connect-standalone /worker.properties /connector.properties.d/*

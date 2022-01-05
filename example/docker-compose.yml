@@ -2,21 +2,66 @@ version: '3.7'
 
 services:
 
-  kafka-postgres-connect:
-    image: kafka-postgres-connect
-    build:
-      context: ./kafka-postgres-connect
-    deploy:
-      mode: replicated
-      placement:
-        constraints:
-          - node.labels.role-zookeeper==true
+  zookeeper:
+    image: 'bitnami/zookeeper:latest'
+    env_file:
+      - zookeeper/zookeeper.env
     networks:
       - kafka-network
+    restart: unless-stopped
 
+  kafka:
+    image: 'bitnami/kafka:latest'
+    env_file:
+      - kafka/kafka.env
+    networks:
+      - kafka-network
+    depends_on:
+      - zookeeper
+    restart: unless-stopped
+
+  postgres:
+    image: postgres:11-alpine
+    env_file:
+      - postgres/postgres.env
+    networks:
+      - kafka-network
+    ports:
+      - 5432:5432
+    restart: unless-stopped
+    volumes:
+      - type: bind
+        source: ./postgres/init.d
+        target: /docker-entrypoint-initdb.d
+
+  kafka-connect-jdbc:
+    image: ghcr.io/mhorlacher/kafka-connect-jdbc:latest
+    env_file:
+      - kafka-connect-jdbc/kafka-connect-jdbc.env
+    networks:
+      - kafka-network
+    depends_on:
+      - zookeeper
+      - kafka
+      - postgres
+    restart: unless-stopped
+    volumes:
+      - type: bind
+        source: ./kafka-connect-jdbc/worker.properties
+        target: /worker.properties
+      - type: bind
+        source: ./kafka-connect-jdbc/connector.properties.d
+        target: /connector.properties.d
+
+  kafka-producer:
+    build:
+      context: ./kafka-producer
+    networks:
+      - kafka-network
+    depends_on:
+      - kafka
+    restart: unless-stopped
 
 networks:
-
   kafka-network:
-    external: true
-    name: kafka-network
+    driver: bridge

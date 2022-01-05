@@ -5,7 +5,7 @@ This is a dockerized version of the Confluent JDBC database connector.
 
 ## Usage
 
-This image is running the `connect-standalone` command with a given `worker.properties` and one more more `connector.properties` files. 
+This image is running the `connect-standalone` command with a given `worker.properties` and one or more `connector.properties` files. 
 Worker properties can be mounted to `/worker.properties`, while a directory of one or more connector properties can be mounted to `/connector.properties.d`. 
 
 

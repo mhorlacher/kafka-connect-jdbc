@@ -1,0 +1,22 @@
+version: '3.7'
+
+services:
+
+  kafka-postgres-connect:
+    image: kafka-postgres-connect
+    build:
+      context: ./kafka-postgres-connect
+    deploy:
+      mode: replicated
+      placement:
+        constraints:
+          - node.labels.role-zookeeper==true
+    networks:
+      - kafka-network
+
+
+networks:
+
+  kafka-network:
+    external: true
+    name: kafka-network
